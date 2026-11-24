@@ -4,7 +4,8 @@ import type { Business, Professional, Service } from "./types.ts";
 let client: SupabaseClient | null = null;
 export function db(): SupabaseClient {
   if (client) return client;
-  const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   if (!url || !key) throw new Error("Faltam SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY nas variáveis de ambiente.");
   client = createClient(url, key, { auth: { persistSession: false } });
   return client;
