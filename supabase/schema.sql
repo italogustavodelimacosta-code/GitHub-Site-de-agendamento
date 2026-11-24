@@ -71,8 +71,13 @@ create table if not exists bookings (
 create index if not exists bookings_business_start on bookings (business_id, starts_at);
 create index if not exists bookings_reminder on bookings (starts_at) where reminder_sent_at is null and status = 'confirmado';
 
+-- Senha interna do lembrete automático (gerada aqui, ninguém precisa digitar).
+create table if not exists app_settings (key text primary key, value text not null);
+insert into app_settings (key, value) values ('cron_secret', encode(gen_random_bytes(24), 'hex')) on conflict (key) do nothing;
+
 -- O site acessa o banco só pelo servidor (chave secreta). Bloqueia acesso direto do navegador.
 alter table businesses enable row level security;
 alter table professionals enable row level security;
 alter table services enable row level security;
 alter table bookings enable row level security;
+alter table app_settings enable row level security;

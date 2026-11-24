@@ -29,7 +29,8 @@ Tecnologia: Next.js 14 (hospedado na Vercel), Supabase (banco de dados e agendad
 1. Em [vercel.com/new](https://vercel.com/new), importe este repositório do GitHub.
 2. Antes de clicar em Deploy, abra **Environment Variables** e preencha as variáveis listadas em `.env.example`:
    - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`: os valores do passo 1.
-   - `SESSION_SECRET` e `CRON_SECRET`: invente duas senhas longas e diferentes.
+   - `SESSION_SECRET` e `CRON_SECRET` são opcionais. Se ficarem em branco, o site gera as senhas sozinho.
+   - Outra opção: em vez de copiar as chaves, adicione a integração **Supabase** da Vercel (Marketplace). Ela preenche `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` sozinha.
    - `SITE_URL`: deixe em branco agora e preencha depois com o endereço que a Vercel der.
    - As variáveis `WHATSAPP_...` podem ficar em branco por enquanto. Sem elas, o site funciona e só não envia mensagens.
 3. Clique em **Deploy**. Abra `https://SEU-SITE.vercel.app/barbearia` para testar.
@@ -62,7 +63,7 @@ A aprovação costuma sair em minutos ou até 1 dia.
 
 ### 4. Lembrete de 30 minutos
 1. No Supabase, vá em **Database > Extensions** e ative **pg_cron** e **pg_net**.
-2. Abra `supabase/lembretes.sql`, troque `SEU-SITE` e `SEU-CRON-SECRET` e rode o arquivo no SQL Editor.
+2. Abra `supabase/lembretes.sql`, troque `SEU-SITE` pelo endereço do site e rode o arquivo no SQL Editor. A senha interna do lembrete é criada sozinha.
    A partir daí, a cada 5 minutos o Supabase chama o site, que envia os lembretes de quem tem horário na próxima meia hora. Cada lembrete só é enviado uma vez.
 
 ---

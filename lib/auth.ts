@@ -15,10 +15,13 @@ export function verifyPassword(pw: string, stored: string): boolean {
 }
 export const isInitialPassword = (stored: string) => stored.startsWith("sha256:");
 
+// Usa SESSION_SECRET se existir; senão deriva uma chave da chave secreta do Supabase (nunca exposta).
 const secret = () => {
   const s = process.env.SESSION_SECRET;
-  if (!s || s.length < 16) throw new Error("Defina SESSION_SECRET (pelo menos 16 caracteres).");
-  return s;
+  if (s && s.length >= 16) return s;
+  const k = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!k) throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY.");
+  return createHmac("sha256", k).update("painel-sessao").digest("hex");
 };
 export const cookieName = (slug: string) => `painel_${slug}`;
 /** Token de sessão: slug.expira.assinatura */
