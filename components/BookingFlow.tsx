@@ -1,4 +1,5 @@
 "use client";
+import CutMorph from "./CutMorph";
 import { useEffect, useMemo, useState } from "react";
 import type { PublicBusiness, Professional, Service, Size } from "@/lib/types";
 import { quote, brl, priceOf } from "@/lib/pricing";
@@ -103,6 +104,11 @@ export default function BookingFlow({ biz, services, professionals, today }: Pro
 
       {step === 0 && (
         <>
+          {biz.kind === "barbearia" && (() => {
+            const looks = principal.filter(s => s.image_url);
+            return <CutMorph looks={looks.map(s => ({ img: s.image_url!, name: s.name, price: Number(s.price) }))}
+              onPick={k => { if (!sel.includes(looks[k].id)) pickPrincipal(looks[k].id); document.querySelector(".list")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} />;
+          })()}
           {biz.trailer_video && (
             <section className="media" aria-label="Vídeo">
               <video src={biz.trailer_video} poster={biz.trailer_poster || undefined} autoPlay muted loop playsInline />
