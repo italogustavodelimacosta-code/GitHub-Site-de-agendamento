@@ -4,7 +4,7 @@ import { localToDate, dateBR, hhmm } from "./time.ts";
 import { quote, brl } from "./pricing.ts";
 import { toWhatsApp, okEmail } from "./phone.ts";
 import { sendTemplate } from "./whatsapp.ts";
-import { emailOwner } from "./email.ts";
+import { emailOwner, avisoPara } from "./email.ts";
 import type { Size } from "./types.ts";
 
 export type BookingRequest = {
@@ -81,7 +81,7 @@ export async function createBooking(slug: string, r: BookingRequest) {
   const [toClient, toOwner, toEmail] = await Promise.all([
     sendTemplate(phone, "agendamento_confirmado", [name.split(" ")[0], biz.name, what, when, at, brl(q.total), biz.address || "-"]),
     sendTemplate(toWhatsApp(biz.owner_whatsapp) || "", "novo_agendamento", [biz.name, name, `+${phone}`, what + (pickup ? ` · buscar em ${pickupAddress}` : ""), when, at, brl(q.total)]),
-    emailOwner(`Novo agendamento: ${name} · ${when} às ${at}`, {
+    emailOwner(avisoPara(biz.config), `Novo agendamento: ${name} · ${when} às ${at}`, {
       Local: biz.name, Cliente: name, WhatsApp: `+${phone}`, "E-mail": email, "Serviço": what,
       Dia: when, Hora: at, Total: brl(q.total), ...(pickup ? { Buscar_em: pickupAddress } : {}),
     }),

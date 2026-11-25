@@ -1,0 +1,21 @@
+{
+  "link": "lavajatodamaria",
+  "tipo": "lavarapido",
+  "nome": "Lava Jato da Maria",
+  "endereco": "Av. Brasil, 500",
+  "abre": "08:00",
+  "fecha": "18:00",
+  "intervalo": 60,
+  "fechado": ["domingo"],
+  "whatsapp": "(19) 98888-0000",
+  "email": "maria@exemplo.com",
+  "boxes": 2,
+  "levaETraz": 20,
+  "servicos": [
+    { "nome": "Lavagem simples", "info": "Externa, rodas e secagem", "preco": 40, "custo": 8, "minutos": 40 },
+    { "nome": "Lavagem completa", "info": "Simples + aspiração e painel", "preco": 70, "custo": 14, "minutos": 70, "destaque": "Mais pedido" }
+  ],
+  "extras": [
+    { "nome": "Cera", "preco": 30, "custo": 8, "minutos": 20 }
+  ]
+}

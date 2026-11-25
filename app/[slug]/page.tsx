@@ -19,7 +19,11 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
   if (!biz) notFound();
   const { services, professionals } = await getCatalog(biz.id);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { owner_whatsapp, owner_password_hash, ...pub } = biz;
+  const { owner_whatsapp, owner_password_hash, ...rest } = biz;
+  // O e-mail de aviso do dono fica só no servidor.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { aviso_email, ...config } = biz.config;
+  const pub = { ...rest, config };
   const today = dateToLocal(new Date(), biz.tz_offset).date;
   return (
     <div data-style={biz.config.style || undefined} style={{ background: "var(--bg)", minHeight: "100vh" }}>

@@ -77,6 +77,21 @@ A aprovação costuma sair em minutos ou até 1 dia.
 - O lembrete automático só roda com a senha interna (`CRON_SECRET` ou a gerada no banco). O robô do WhatsApp só aceita mensagens assinadas pela Meta (`WHATSAPP_APP_SECRET`).
 - Depois de atualizar o código, rode `supabase/seguranca.sql` uma vez no SQL Editor.
 
+## Vender para um cliente novo
+Todos os clientes usam o mesmo site e o mesmo banco. Não precisa criar outra conta na Vercel nem no Supabase, e não custa nada a mais.
+Cada cliente ganha o próprio link (`https://SEU-SITE/<link>`) e o próprio painel (`/<link>/painel`), com senha só dele. Os clientes não aparecem na página inicial.
+
+1. Copie `clientes/exemplo-barbearia.json` (ou `exemplo-lavarapido.json`) e troque pelos dados do cliente: link, nome, endereço, horários, dias fechados, WhatsApp, e-mail, profissionais, serviços, preços, custos e duração.
+2. Rode `node --experimental-strip-types scripts/novo-cliente.ts clientes/<arquivo>.json`. Ele confere a ficha, mostra o SQL e a senha do painel. Se a ficha não tiver `senha`, ele cria uma.
+3. Cole o SQL no Supabase > SQL Editor e clique em **Run**.
+4. Mande para o cliente o link, o endereço do painel e a senha. No painel ele troca a senha e o WhatsApp quando quiser.
+
+Fotos e vídeo do cliente: coloque em `public/media/<link>/` e use `/media/<link>/foto.jpg` nos campos `foto`, `fotos` e `video`.
+
+Aviso por e-mail ao cliente: o e-mail fica na ficha (`email`). Enquanto o Resend usar o remetente de teste (`onboarding@resend.dev`), ele só entrega para o e-mail da conta Resend. Para chegar no e-mail de cada cliente, verifique um domínio próprio no Resend e preencha `AVISO_REMETENTE` na Vercel (ex.: `Agendamentos <avisos@seudominio.com.br>`). Sem isso, o cliente recebe pelo botão de WhatsApp e vê tudo no painel.
+
+Para tirar um cliente do ar: `delete from businesses where slug = '<link>' and config->>'cliente' = 'true';` (apaga os agendamentos dele também).
+
 ## Ajustes do dia a dia
 - **Preços, custos, serviços, fotos e vídeos:** Supabase > Table Editor > `services`. A coluna `active` liga e desliga um serviço.
 - **Barbeiros:** tabela `professionals`.

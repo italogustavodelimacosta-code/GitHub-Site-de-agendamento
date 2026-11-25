@@ -19,7 +19,7 @@ export async function GET() {
   if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       const { data, error } = await db().from("businesses").select("slug");
-      banco = error ? `erro: ${error.message}` : `ok (${(data || []).map(b => b.slug).join(", ") || "nenhum negócio cadastrado"})`;
+      banco = error ? `erro: ${error.message}` : `ok (${(data || []).length} negócios cadastrados)`;
     } catch (e) { banco = `erro: ${(e as Error).message}`; }
   }
   return NextResponse.json({ env, banco });
