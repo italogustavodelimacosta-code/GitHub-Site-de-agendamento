@@ -75,9 +75,15 @@ create index if not exists bookings_reminder on bookings (starts_at) where remin
 create table if not exists app_settings (key text primary key, value text not null);
 insert into app_settings (key, value) values ('cron_secret', encode(gen_random_bytes(24), 'hex')) on conflict (key) do nothing;
 
+-- Conta tentativas de login e de agendamento (limite contra robôs).
+create table if not exists rate_limits (key text not null, at timestamptz not null default now());
+create index if not exists rate_limits_key_at on rate_limits (key, at);
+
 -- O site acessa o banco só pelo servidor (chave secreta). Bloqueia acesso direto do navegador.
 alter table businesses enable row level security;
 alter table professionals enable row level security;
 alter table services enable row level security;
 alter table bookings enable row level security;
 alter table app_settings enable row level security;
+alter table rate_limits enable row level security;
+revoke all on businesses, professionals, services, bookings, app_settings, rate_limits from anon, authenticated;

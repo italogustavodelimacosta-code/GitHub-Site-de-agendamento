@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { db, getBusiness } from "@/lib/db";
-import { checkSession, cookieName, isInitialPassword } from "@/lib/auth";
+import { checkSession, cookieName } from "@/lib/auth";
 import { addDays, dateToLocal, hhmm, localToDate, weekdayOf, WD, dateBR } from "@/lib/time";
 import { brl } from "@/lib/pricing";
 import type { Booking } from "@/lib/types";
@@ -10,10 +10,11 @@ export const dynamic = "force-dynamic";
 
 const STATUS: Record<string, string> = { confirmado: "Confirmado", concluido: "Concluído", cancelado: "Cancelado", faltou: "Faltou" };
 
-export default async function Painel({ params, searchParams }: { params: { slug: string }; searchParams: { p?: string; msg?: string } }) {
+export default async function Painel(props: { params: Promise<{ slug: string }>; searchParams: Promise<{ p?: string; msg?: string }> }) {
+  const [params, searchParams] = await Promise.all([props.params, props.searchParams]);
   const biz = await getBusiness(params.slug);
   if (!biz) notFound();
-  if (!checkSession(biz.slug, cookies().get(cookieName(biz.slug))?.value)) redirect(`/${biz.slug}/painel/entrar`);
+  if (!checkSession(biz.slug, biz.owner_password_hash, (await cookies()).get(cookieName(biz.slug))?.value)) redirect(`/${biz.slug}/painel/entrar`);
 
   const p = ["hoje", "semana", "mes"].includes(searchParams.p || "") ? searchParams.p! : "semana";
   const today = dateToLocal(new Date(), biz.tz_offset).date;
@@ -39,7 +40,7 @@ export default async function Painel({ params, searchParams }: { params: { slug:
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const lbl = { hoje: "hoje", semana: "nos últimos 7 dias", mes: "neste mês" }[p];
   const unit = biz.kind === "lavarapido" ? "Carros lavados" : "Atendimentos";
-  const msgs: Record<string, string> = { "zap-ok": "WhatsApp salvo.", "zap-erro": "Número inválido. Use DDD + número.", "senha-ok": "Senha trocada.", "senha-erro": "A senha precisa ter pelo menos 6 caracteres." };
+  const msgs: Record<string, string> = { "zap-ok": "WhatsApp salvo.", "zap-erro": "Número inválido. Use DDD + número.", "senha-ok": "Senha trocada. Os outros aparelhos que estavam logados foram desconectados.", "senha-atual": "A senha atual não confere.", "senha-curta": "A nova senha precisa ter pelo menos 8 caracteres.", "senha-longa": "A nova senha está longa demais.", "senha-fraca": "Essa senha é fácil de adivinhar. Escolha outra." };
 
   return (
     <div data-style={biz.config.style || undefined} style={{ background: "var(--bg)", minHeight: "100vh" }}>
@@ -50,7 +51,6 @@ export default async function Painel({ params, searchParams }: { params: { slug:
         </header>
         {searchParams.msg && msgs[searchParams.msg] && <div className="notice">{msgs[searchParams.msg]}</div>}
         {!biz.owner_whatsapp && <div className="notice"><b>Cadastre seu WhatsApp</b> lá embaixo para receber cada agendamento na hora.</div>}
-        {isInitialPassword(biz.owner_password_hash) && <div className="notice"><b>Troque a senha inicial</b> lá embaixo.</div>}
 
         <nav className="tabs" aria-label="Período">
           {[["hoje", "Hoje"], ["semana", "Semana"], ["mes", "Mês"]].map(([k, t]) => <a key={k} href={`?p=${k}`} aria-current={p === k ? "page" : undefined}>{t}</a>)}
@@ -91,7 +91,8 @@ export default async function Painel({ params, searchParams }: { params: { slug:
           </form>
           <form method="post" action={`/api/${biz.slug}/admin`} className="row2">
             <input type="hidden" name="acao" value="senha" />
-            <div className="field"><label htmlFor="nova">Nova senha do painel</label><input id="nova" name="nova" type="password" autoComplete="new-password" minLength={6} /></div>
+            <div className="field"><label htmlFor="atual">Senha atual</label><input id="atual" name="atual" type="password" autoComplete="current-password" required /></div>
+            <div className="field"><label htmlFor="nova">Nova senha do painel (mínimo 8)</label><input id="nova" name="nova" type="password" autoComplete="new-password" minLength={8} required /></div>
             <button className="btn ghost" type="submit">Trocar</button>
           </form>
           <p className="hint" style={{ marginTop: 14, marginBottom: 0 }}>Link para seus clientes: <b>/{biz.slug}</b> no endereço do site.</p>
