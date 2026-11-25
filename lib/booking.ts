@@ -82,7 +82,7 @@ export async function createBooking(slug: string, r: BookingRequest) {
     sendTemplate(phone, "agendamento_confirmado", [name.split(" ")[0], biz.name, what, when, at, brl(q.total), biz.address || "-"]),
     sendTemplate(toWhatsApp(biz.owner_whatsapp) || "", "novo_agendamento", [biz.name, name, `+${phone}`, what + (pickup ? ` · buscar em ${pickupAddress}` : ""), when, at, brl(q.total)]),
     emailOwner(`Novo agendamento: ${name} · ${when} às ${at}`, {
-      Local: biz.name, Cliente: name, WhatsApp: `+${phone}`, "E-mail": email, Servico: what,
+      Local: biz.name, Cliente: name, WhatsApp: `+${phone}`, "E-mail": email, "Serviço": what,
       Dia: when, Hora: at, Total: brl(q.total), ...(pickup ? { Buscar_em: pickupAddress } : {}),
     }),
   ]);

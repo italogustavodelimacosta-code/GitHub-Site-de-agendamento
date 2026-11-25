@@ -13,6 +13,7 @@ export async function GET() {
     PAINEL_SENHA: (process.env.PAINEL_SENHA || "").length >= 8,
     WHATSAPP_APP_SECRET: !!process.env.WHATSAPP_APP_SECRET,
     AVISO_EMAIL: !!process.env.AVISO_EMAIL,
+    RESEND_API_KEY: !!process.env.RESEND_API_KEY,
   };
   let banco = "não testado";
   if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
