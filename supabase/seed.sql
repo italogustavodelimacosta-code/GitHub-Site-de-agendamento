@@ -1,6 +1,6 @@
 -- Dados iniciais dos dois negócios. Rode depois do schema.sql.
 -- Troque nomes, endereços, preços e custos pelos reais (ou edite depois no Supabase > Table Editor).
--- A senha inicial do painel dos dois é "trocar123". Troque assim que entrar.
+-- Senha do painel: no primeiro acesso vale a senha que você colocar em PAINEL_SENHA na Vercel.
 
 with b as (
   insert into businesses (slug, kind, name, address, open_min, close_min, step_min, capacity, closed_weekdays, owner_whatsapp, owner_password_hash, trailer_video, trailer_poster, config)
@@ -46,6 +46,6 @@ select b.id, x.kind, x.name, x.info, x.price, x.cost, x.dur, x.img, x.tag, x.sor
   ('extra','Oxi-sanitização','',50,10,30,null,null,7)
 ) as x(kind, name, info, price, cost, dur, img, tag, sort);
 
--- Senha inicial do painel: "trocar123". O painel avisa para trocar no primeiro acesso.
+-- Marcador de "senha ainda não criada". O login não aceita este valor; usa PAINEL_SENHA da Vercel.
 update businesses set owner_password_hash = 'sha256:' || slug || ':' || encode(digest(slug || 'trocar123', 'sha256'), 'hex')
 where owner_password_hash = '';

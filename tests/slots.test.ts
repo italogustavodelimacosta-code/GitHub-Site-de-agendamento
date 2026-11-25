@@ -4,7 +4,7 @@ import { computeSlots } from "../lib/slots.ts";
 import { localToDate, dateToLocal } from "../lib/time.ts";
 import { toWhatsApp } from "../lib/phone.ts";
 import { quote } from "../lib/pricing.ts";
-import { hashPassword, verifyPassword } from "../lib/auth.ts";
+import { hashPassword, verifyPassword, makeSession, checkSession, isInitialPassword, passwordProblem } from "../lib/auth.ts";
 import { createHash } from "node:crypto";
 
 const base = { date: "2026-12-01", tz: "-03:00", stepMin: 30, durationMin: 60, closedWeekdays: [0], now: new Date("2026-11-30T12:00:00Z") };
@@ -57,4 +57,25 @@ test("senha: scrypt e senha inicial do seed", () => {
   assert.ok(!verifyPassword("errada", h));
   const seed = "sha256:barbearia:" + createHash("sha256").update("barbearia" + "trocar123").digest("hex");
   assert.ok(verifyPassword("trocar123", seed));
+});
+
+test("sessão do painel: vale só para o negócio e a senha certos", () => {
+  process.env.SESSION_SECRET = "segredo-de-teste-com-mais-de-16";
+  const h = hashPassword("senhaforte1"), outra = hashPassword("outrasenha2");
+  const t = makeSession("barbearia", h);
+  assert.ok(checkSession("barbearia", h, t));
+  assert.ok(!checkSession("lavarapido", h, t), "não vale em outro negócio");
+  assert.ok(!checkSession("barbearia", outra, t), "trocar a senha derruba a sessão");
+  assert.ok(!checkSession("barbearia", h, t.slice(0, -1) + (t.endsWith("a") ? "b" : "a")), "assinatura adulterada");
+  assert.ok(!checkSession("barbearia", h, makeSession("barbearia", h, -1)), "expirada");
+  const seed = "sha256:barbearia:" + createHash("sha256").update("barbeariatrocar123").digest("hex");
+  assert.ok(isInitialPassword(seed) && isInitialPassword(""));
+  assert.ok(!checkSession("barbearia", seed, makeSession("barbearia", seed)), "senha inicial pública nunca abre o painel");
+});
+
+test("regras da senha nova", () => {
+  assert.equal(passwordProblem("abc"), "curta");
+  assert.equal(passwordProblem("trocar123"), "fraca");
+  assert.equal(passwordProblem("aaaaaaaaaa"), "fraca");
+  assert.equal(passwordProblem("Navalha#2026"), null);
 });

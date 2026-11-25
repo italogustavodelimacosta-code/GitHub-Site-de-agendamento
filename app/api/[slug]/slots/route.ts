@@ -6,11 +6,12 @@ import { localToDate } from "@/lib/time";
 export const dynamic = "force-dynamic";
 
 // GET /api/<slug>/slots?date=2026-11-25&duration=45&pro=<id opcional>
-export async function GET(req: Request, { params }: { params: { slug: string } }) {
+export async function GET(req: Request, ctx: { params: Promise<{ slug: string }> }) {
+  const params = await ctx.params;
   const u = new URL(req.url);
   const date = u.searchParams.get("date") || "";
   const duration = Math.max(10, Math.min(600, Number(u.searchParams.get("duration")) || 30));
-  const pro = u.searchParams.get("pro");
+  const pro = (u.searchParams.get("pro") || "").slice(0, 40) || null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return NextResponse.json({ error: "data inválida" }, { status: 400 });
   const biz = await getBusiness(params.slug);
   if (!biz) return NextResponse.json({ error: "não encontrado" }, { status: 404 });

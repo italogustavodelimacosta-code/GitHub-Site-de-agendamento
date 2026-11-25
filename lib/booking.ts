@@ -17,12 +17,24 @@ export class BookingError extends Error { constructor(msg: string, public status
 export async function createBooking(slug: string, r: BookingRequest) {
   const biz = await getBusiness(slug);
   if (!biz) throw new BookingError("Estabelecimento não encontrado.", 404);
-  const name = (r.name || "").trim();
-  if (name.length < 3) throw new BookingError("Digite o nome completo.");
-  const phone = toWhatsApp(r.phone);
+  if (!r || typeof r !== "object") throw new BookingError("Pedido inválido.");
+  const str = (v: unknown, max: number) => (typeof v === "string" ? v : "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  const name = str(r.name, 80).replace(/\s+/g, " ");
+  if (name.length < 3 || !/\p{L}/u.test(name)) throw new BookingError("Digite o nome completo.");
+  const phone = toWhatsApp(str(r.phone, 40));
   if (!phone) throw new BookingError("Digite um WhatsApp válido, com DDD.");
-  if (!okEmail(r.email)) throw new BookingError("Digite um e-mail válido.");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date) || !Number.isInteger(r.time)) throw new BookingError("Escolha um dia e um horário.");
+  const email = str(r.email, 120);
+  if (!okEmail(email)) throw new BookingError("Digite um e-mail válido.");
+  if (typeof r.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(r.date) || !Number.isInteger(r.time) || r.time < 0 || r.time >= 1440) throw new BookingError("Escolha um dia e um horário.");
+  const today = new Date(), day = new Date(r.date + "T12:00:00Z");
+  if (Number.isNaN(day.getTime()) || day.getTime() - today.getTime() > 90 * 86400000) throw new BookingError("Escolha um dia nos próximos 3 meses.");
+  if (!Array.isArray(r.serviceIds) || r.serviceIds.length > 20 || !r.serviceIds.every(x => typeof x === "string")) throw new BookingError("Escolha um serviço.");
+  const pickupAddress = str(r.pickupAddress, 200);
+
+  // Evita que alguém lote a agenda com um número só: no máximo 3 horários futuros por WhatsApp.
+  const { count: active } = await db().from("bookings").select("id", { count: "exact", head: true })
+    .eq("business_id", biz.id).eq("client_phone", phone).eq("status", "confirmado").gt("starts_at", new Date().toISOString());
+  if ((active || 0) >= 3) throw new BookingError("Este WhatsApp já tem 3 horários marcados. Para marcar mais, fale com o estabelecimento.", 429);
 
   const { services, professionals } = await getCatalog(biz.id);
   const chosen = services.filter(s => r.serviceIds.includes(s.id));
@@ -34,7 +46,7 @@ export async function createBooking(slug: string, r: BookingRequest) {
     if (!size) throw new BookingError("Escolha o tipo do carro.");
   }
   const pickup = biz.kind === "lavarapido" && !!r.pickup;
-  if (pickup && (r.pickupAddress || "").trim().length < 6) throw new BookingError("Digite o endereço para buscarmos o carro.");
+  if (pickup && pickupAddress.length < 6) throw new BookingError("Digite o endereço para buscarmos o carro.");
   const q = quote(chosen, size, pickup ? biz.config.pickupFee || 0 : 0);
 
   // Confere de novo, no servidor, se o horário continua livre.
@@ -53,10 +65,10 @@ export async function createBooking(slug: string, r: BookingRequest) {
   const ends = new Date(starts.getTime() + q.duration * 60000);
   const { data, error } = await db().from("bookings").insert({
     business_id: biz.id, professional_id: slot.professionalId, client_name: name, client_phone: phone,
-    client_email: r.email.trim(), starts_at: starts.toISOString(), ends_at: ends.toISOString(),
+    client_email: email, starts_at: starts.toISOString(), ends_at: ends.toISOString(),
     items: q.items, total: q.total, cost: q.cost, vehicle_size: size?.id || null,
-    plate: (r.plate || "").toUpperCase().replace(/[^A-Z0-9]/g, "") || null,
-    pickup_address: pickup ? (r.pickupAddress || "").trim() : null,
+    plate: str(r.plate, 20).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8) || null,
+    pickup_address: pickup ? pickupAddress : null,
   }).select("id").single();
   if (error) throw error;
 
@@ -67,7 +79,7 @@ export async function createBooking(slug: string, r: BookingRequest) {
   // WhatsApp: confirmação para o cliente e aviso para o dono. Falhas não cancelam o agendamento.
   const [toClient, toOwner] = await Promise.all([
     sendTemplate(phone, "agendamento_confirmado", [name.split(" ")[0], biz.name, what, when, at, brl(q.total), biz.address || "-"]),
-    sendTemplate(toWhatsApp(biz.owner_whatsapp) || "", "novo_agendamento", [biz.name, name, `+${phone}`, what + (pickup ? ` · buscar em ${r.pickupAddress}` : ""), when, at, brl(q.total)]),
+    sendTemplate(toWhatsApp(biz.owner_whatsapp) || "", "novo_agendamento", [biz.name, name, `+${phone}`, what + (pickup ? ` · buscar em ${pickupAddress}` : ""), when, at, brl(q.total)]),
   ]);
 
   return { id: data.id as string, total: q.total, what, when, at, professional: proName || null, whatsapp: { client: toClient, owner: toOwner } };

@@ -7,12 +7,14 @@ import type { PublicBusiness } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const b = await getBusiness(params.slug);
   return { title: b ? `Agendar · ${b.name}` : "Agendamento" };
 }
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const biz = await getBusiness(params.slug);
   if (!biz) notFound();
   const { services, professionals } = await getCatalog(biz.id);
