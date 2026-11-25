@@ -8,7 +8,7 @@ import { okEmail } from "@/lib/phone";
 import Lightbox, { type LbItem } from "./Lightbox";
 
 type Props = { biz: PublicBusiness; services: Service[]; professionals: Professional[]; today: string };
-type Done = { total: number; what: string; when: string; at: string };
+type Done = { total: number; what: string; when: string; at: string; ownerWa?: string; waText?: string; whatsapp?: { client?: { ok: boolean } } };
 
 const fmtPhone = (v: string) => {
   const n = v.replace(/\D/g, "").slice(0, 11);
@@ -92,7 +92,14 @@ export default function BookingFlow({ biz, services, professionals, today }: Pro
       <div className="done"><div className="check" aria-hidden="true">✓</div>
         <h2>Horário marcado, {name.split(" ")[0]}!</h2>
         <p className="hint">{done.what}<br />{done.when} às {done.at} · {brl(done.total)}</p></div>
-      <div className="summary"><b>Você vai receber a confirmação no WhatsApp.</b><span className="sub">Meia hora antes, mandamos um lembrete. Para remarcar ou cancelar, responda a mensagem.</span></div>
+      {done.ownerWa ? (
+        <>
+          <a className="btn zap block" href={`https://wa.me/${done.ownerWa}?text=${encodeURIComponent(done.waText || "")}`} target="_blank" rel="noopener noreferrer">Enviar meu agendamento no WhatsApp</a>
+          <div className="summary"><b>Seu horário já está reservado.</b><span className="sub">Toque no botão verde para mandar os detalhes para o WhatsApp de {biz.name}. Para remarcar ou cancelar, é só falar por lá.</span></div>
+        </>
+      ) : (
+        <div className="summary"><b>{done.whatsapp?.client?.ok ? "Você vai receber a confirmação no WhatsApp." : "Seu horário já está reservado."}</b><span className="sub">{done.whatsapp?.client?.ok ? "Meia hora antes, mandamos um lembrete. Para remarcar ou cancelar, responda a mensagem." : "Para remarcar ou cancelar, fale com o estabelecimento."}</span></div>
+      )}
       <button className="btn ghost block" type="button" onClick={() => { setDone(null); setStep(0); setSel([]); setTime(null); }}>Fazer outro agendamento</button>
     </div>
   );
@@ -196,7 +203,7 @@ export default function BookingFlow({ biz, services, professionals, today }: Pro
       </>)}
 
       {cur === "dados" && (<>
-        <h2>Seus dados</h2><p className="hint">Sem cadastro e sem senha. A confirmação chega no seu WhatsApp.</p>
+        <h2>Seus dados</h2><p className="hint">Sem cadastro e sem senha. Seu WhatsApp é para a gente falar com você sobre o horário.</p>
         <div className="summary">
           {q.items.map(i => <div className="row" key={i.name}><span>{i.name}</span><span>{brl(i.price)}</span></div>)}
           <div className="row"><span>Quando</span><span>{dateBR(date)} às {time !== null ? hhmm(time) : ""}</span></div>

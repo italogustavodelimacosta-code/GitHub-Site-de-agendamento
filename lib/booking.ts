@@ -82,7 +82,12 @@ export async function createBooking(slug: string, r: BookingRequest) {
     sendTemplate(toWhatsApp(biz.owner_whatsapp) || "", "novo_agendamento", [biz.name, name, `+${phone}`, what + (pickup ? ` · buscar em ${pickupAddress}` : ""), when, at, brl(q.total)]),
   ]);
 
-  return { id: data.id as string, total: q.total, what, when, at, professional: proName || null, whatsapp: { client: toClient, owner: toOwner } };
+  // Sem a API da Meta ligada, o cliente manda o pedido pelo próprio WhatsApp (link wa.me, grátis).
+  const ownerWa = toWhatsApp(biz.owner_whatsapp) || "";
+  const waText = [`Olá, ${biz.name}! Acabei de agendar pelo site:`, `• ${what}`, `• ${when} às ${at}`, `• Total: ${brl(q.total)}`,
+    ...(pickup ? [`• Buscar em: ${pickupAddress}`] : []), `Nome: ${name}`].join("\n");
+  return { id: data.id as string, total: q.total, what, when, at, professional: proName || null,
+    whatsapp: { client: toClient, owner: toOwner }, ownerWa: toOwner.ok ? "" : ownerWa, waText };
 }
 
 /** Envia o lembrete de 30 minutos para quem ainda não recebeu. Chamado a cada 5 minutos. */

@@ -84,6 +84,7 @@ input:focus{outline:3px solid var(--hi);outline-offset:1px}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .btn[disabled]{opacity:.4;cursor:not-allowed}
 .btn.block{width:100%}
+.btn.zap{background:#25D366;color:#06301a;margin:14px 0 4px;font-size:17px;padding:15px 18px}
 .bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:5}
 .bar .in{max-width:480px;margin:0 auto;display:flex;gap:10px;align-items:center}
 .bar .total{flex:1;min-width:0;font-size:13px;color:var(--muted)}
