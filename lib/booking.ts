@@ -4,6 +4,7 @@ import { localToDate, dateBR, hhmm } from "./time.ts";
 import { quote, brl } from "./pricing.ts";
 import { toWhatsApp, okEmail } from "./phone.ts";
 import { sendTemplate } from "./whatsapp.ts";
+import { emailOwner } from "./email.ts";
 import type { Size } from "./types.ts";
 
 export type BookingRequest = {
@@ -77,9 +78,13 @@ export async function createBooking(slug: string, r: BookingRequest) {
   const when = dateBR(r.date), at = hhmm(r.time);
 
   // WhatsApp: confirmação para o cliente e aviso para o dono. Falhas não cancelam o agendamento.
-  const [toClient, toOwner] = await Promise.all([
+  const [toClient, toOwner, toEmail] = await Promise.all([
     sendTemplate(phone, "agendamento_confirmado", [name.split(" ")[0], biz.name, what, when, at, brl(q.total), biz.address || "-"]),
     sendTemplate(toWhatsApp(biz.owner_whatsapp) || "", "novo_agendamento", [biz.name, name, `+${phone}`, what + (pickup ? ` · buscar em ${pickupAddress}` : ""), when, at, brl(q.total)]),
+    emailOwner(`Novo agendamento: ${name} · ${when} às ${at}`, {
+      Local: biz.name, Cliente: name, WhatsApp: `+${phone}`, "E-mail": email, Servico: what,
+      Dia: when, Hora: at, Total: brl(q.total), ...(pickup ? { Buscar_em: pickupAddress } : {}),
+    }),
   ]);
 
   // Sem a API da Meta ligada, o cliente manda o pedido pelo próprio WhatsApp (link wa.me, grátis).
@@ -87,7 +92,7 @@ export async function createBooking(slug: string, r: BookingRequest) {
   const waText = [`Olá, ${biz.name}! Acabei de agendar pelo site:`, `• ${what}`, `• ${when} às ${at}`, `• Total: ${brl(q.total)}`,
     ...(pickup ? [`• Buscar em: ${pickupAddress}`] : []), `Nome: ${name}`].join("\n");
   return { id: data.id as string, total: q.total, what, when, at, professional: proName || null,
-    whatsapp: { client: toClient, owner: toOwner }, ownerWa: toOwner.ok ? "" : ownerWa, waText };
+    whatsapp: { client: toClient, owner: toOwner }, email: toEmail.ok, ownerWa: toOwner.ok ? "" : ownerWa, waText };
 }
 
 /** Envia o lembrete de 30 minutos para quem ainda não recebeu. Chamado a cada 5 minutos. */
