@@ -10,7 +10,8 @@ import type { Business } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ESTILOS = ["noturno", "agua", "claro"];
+const ESTILOS = ["noturno", "agua", "claro", "grafite", "turbo"];
+const MODELOS = ["classico", "vitrine"];
 class Erro extends Error {}
 
 const txt = (v: unknown, max = 120) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
@@ -104,7 +105,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       if (fecha <= abre) throw new Erro("O horário de fechar precisa ser depois do de abrir.");
       const fechado = f.getAll("fechado").map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 6);
       const estilo = String(f.get("estilo") || "");
-      const config = { ...biz.config, style: ESTILOS.includes(estilo) ? estilo : biz.config.style };
+      const modelo = String(f.get("modelo") || "");
+      const config = { ...biz.config, style: ESTILOS.includes(estilo) ? estilo : biz.config.style, layout: MODELOS.includes(modelo) ? modelo : biz.config.layout };
       const up: Record<string, unknown> = {
         name: nome, address: txt(f.get("endereco"), 160), open_min: abre, close_min: fecha,
         step_min: Math.round(numero(f.get("intervalo"), "Intervalo", 5, 240)), closed_weekdays: [...new Set(fechado)].sort(), config,

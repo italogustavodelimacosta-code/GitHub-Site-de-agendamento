@@ -7,7 +7,8 @@ import { addDays, dateBR, hhmm, weekdayOf, WD } from "@/lib/time";
 import { okEmail } from "@/lib/phone";
 import Lightbox, { type LbItem } from "./Lightbox";
 
-type Props = { biz: PublicBusiness; services: Service[]; professionals: Professional[]; today: string };
+/** embutido: usado dentro da página "Vitrine" (sem cabeçalho e sem a abertura, que a vitrine já mostra). */
+type Props = { biz: PublicBusiness; services: Service[]; professionals: Professional[]; today: string; embutido?: boolean; inicial?: string | null };
 type Done = { total: number; what: string; when: string; at: string; ownerWa?: string; waText?: string; whatsapp?: { client?: { ok: boolean } } };
 
 const fmtPhone = (v: string) => {
@@ -16,11 +17,11 @@ const fmtPhone = (v: string) => {
 };
 const dur = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, "0") : ""}` : `${m} min`);
 
-export default function BookingFlow({ biz, services, professionals, today }: Props) {
+export default function BookingFlow({ biz, services, professionals, today, embutido, inicial }: Props) {
   const car = biz.kind === "lavarapido";
   const STEPS = car ? ["carro", "servico", "retirada", "quando", "dados"] : ["servico", "pro", "quando", "dados"];
   const [step, setStep] = useState(0);
-  const [sel, setSel] = useState<string[]>([]);
+  const [sel, setSel] = useState<string[]>(inicial ? [inicial] : []);
   const [pro, setPro] = useState<string | null>(professionals.length ? null : "none");
   const [size, setSize] = useState<Size | null>(null);
   const [plate, setPlate] = useState("");
@@ -39,6 +40,7 @@ export default function BookingFlow({ biz, services, professionals, today }: Pro
   const principal = services.filter(s => s.kind === "principal"), extras = services.filter(s => s.kind === "extra");
   const days = useMemo(() => Array.from({ length: 14 }, (_, i) => addDays(today, i)), [today]);
   const cur = STEPS[step];
+  const topo = () => embutido ? document.getElementById("agendar")?.scrollIntoView({ behavior: "smooth", block: "start" }) : window.scrollTo(0, 0);
 
   useEffect(() => {
     if (cur !== "quando" || !q.duration) return;
@@ -73,12 +75,12 @@ export default function BookingFlow({ biz, services, professionals, today }: Pro
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error || "Não deu para agendar."); if (r.status === 409) { setTime(null); setStep(STEPS.indexOf("quando")); } return; }
-      setDone(d); window.scrollTo(0, 0);
+      setDone(d); topo();
     } catch { setError("Sem conexão. Tente de novo."); } finally { setSending(false); }
   }
-  const next = () => { if (!can) return; if (cur === "dados") submit(); else { setStep(step + 1); setError(""); window.scrollTo(0, 0); } };
+  const next = () => { if (!can) return; if (cur === "dados") submit(); else { setStep(step + 1); setError(""); topo(); } };
 
-  const header = (
+  const header = embutido ? null : (
     <header className="top">
       <div className="logo" aria-hidden="true">{biz.name.split(" ").filter(w => w.length > 2).slice(-2).map(w => w[0]).join("").toUpperCase()}</div>
       <div><h1>{biz.name}</h1><div className="sub">{biz.address} · {hhmm(biz.open_min)} às {biz.close_min >= 1440 ? "00:00" : hhmm(biz.close_min)}</div></div>
@@ -109,7 +111,7 @@ export default function BookingFlow({ biz, services, professionals, today }: Pro
       {header}
       <div className="steps" aria-hidden="true">{STEPS.map((s, i) => <span key={s} className={i <= step ? "on" : ""} />)}</div>
 
-      {step === 0 && (
+      {step === 0 && !embutido && (
         <>
           {biz.kind === "barbearia" && (() => {
             const looks = principal.filter(s => s.image_url);

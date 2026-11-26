@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getBusiness, getCatalog } from "@/lib/db";
 import { dateToLocal } from "@/lib/time";
 import BookingFlow from "@/components/BookingFlow";
+import Vitrine from "@/components/Vitrine";
 import type { PublicBusiness } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,11 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
   const { aviso_email, ...config } = biz.config;
   const pub = { ...rest, config };
   const today = dateToLocal(new Date(), biz.tz_offset).date;
+  if (biz.config.layout === "vitrine") return (
+    <div data-style={biz.config.style || undefined} data-layout="vitrine" style={{ background: "var(--bg)", minHeight: "100vh" }}>
+      <Vitrine biz={pub as PublicBusiness} services={services} professionals={professionals} today={today} />
+    </div>
+  );
   return (
     <div data-style={biz.config.style || undefined} style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <BookingFlow biz={pub as PublicBusiness} services={services} professionals={professionals} today={today} />
