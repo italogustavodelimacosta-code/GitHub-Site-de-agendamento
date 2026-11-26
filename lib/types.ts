@@ -1,7 +1,7 @@
 export type Kind = "barbearia" | "lavarapido";
 export type Size = { id: string; name: string; ex: string; k: number };
 export type Clip = { src: string; poster?: string; cap: string };
-export type BizConfig = { style?: string; pickupFee?: number; sizes?: Size[]; clips?: Clip[] };
+export type BizConfig = { style?: string; pickupFee?: number; sizes?: Size[]; clips?: Clip[]; cliente?: boolean; aviso_email?: string };
 export type Business = {
   id: string; slug: string; kind: Kind; name: string; address: string;
   open_min: number; close_min: number; step_min: number; capacity: number;

@@ -77,7 +77,25 @@ A aprovação costuma sair em minutos ou até 1 dia.
 - O lembrete automático só roda com a senha interna (`CRON_SECRET` ou a gerada no banco). O robô do WhatsApp só aceita mensagens assinadas pela Meta (`WHATSAPP_APP_SECRET`).
 - Depois de atualizar o código, rode `supabase/seguranca.sql` uma vez no SQL Editor.
 
+## Vender para um cliente novo
+Todos os clientes usam o mesmo site e o mesmo banco. Não precisa criar outra conta na Vercel nem no Supabase, e não custa nada a mais.
+Cada cliente ganha o próprio link (`https://SEU-SITE/<link>`) e o próprio painel (`/<link>/painel`), com senha só dele. Os clientes não aparecem na página inicial.
+
+1. Copie `clientes/exemplo-barbearia.json` (ou `exemplo-lavarapido.json`) e troque pelos dados do cliente: link, nome, endereço, horários, dias fechados, WhatsApp, e-mail, profissionais, serviços, preços, custos e duração.
+2. Rode `node --experimental-strip-types scripts/novo-cliente.ts clientes/<arquivo>.json`. Ele confere a ficha, mostra o SQL e a senha do painel. Se a ficha não tiver `senha`, ele cria uma.
+3. Cole o SQL no Supabase > SQL Editor e clique em **Run**.
+4. Mande para o cliente o link, o endereço do painel e a senha. No painel ele troca a senha e o WhatsApp quando quiser.
+
+Fotos e vídeo do cliente: coloque em `public/media/<link>/` e use `/media/<link>/foto.jpg` nos campos `foto`, `fotos` e `video`.
+
+Aviso por e-mail ao cliente: o e-mail fica na ficha (`email`). Enquanto o Resend usar o remetente de teste (`onboarding@resend.dev`), ele só entrega para o e-mail da conta Resend. Para chegar no e-mail de cada cliente, verifique um domínio próprio no Resend e preencha `AVISO_REMETENTE` na Vercel (ex.: `Agendamentos <avisos@seudominio.com.br>`). Sem isso, o cliente recebe pelo botão de WhatsApp e vê tudo no painel.
+
+Para tirar um cliente do ar: `delete from businesses where slug = '<link>' and config->>'cliente' = 'true';` (apaga os agendamentos dele também).
+
 ## Ajustes do dia a dia
+O próprio dono faz quase tudo pelo painel, em **/<link>/painel > Meu site**: nome, endereço, horário, dias fechados, cores, cortes e lavagens (preço, custo, tempo, descrição, selo, foto e vídeo), adicionais, barbeiros, vídeo de abertura e fotos da galeria. As fotos e vídeos vão para o Supabase Storage (pasta pública `midia`, criada sozinha no primeiro envio; plano grátis: 1 GB). O navegador envia o arquivo direto para o Storage, então vídeos de até 50 MB funcionam.
+
+Pelo Supabase, se precisar:
 - **Preços, custos, serviços, fotos e vídeos:** Supabase > Table Editor > `services`. A coluna `active` liga e desliga um serviço.
 - **Barbeiros:** tabela `professionals`.
 - **Horário de funcionamento:** tabela `businesses`, nas colunas `open_min` e `close_min`, em minutos desde a meia-noite (9h = 540, 20h = 1200, meia-noite = 1440). Os dias fechados ficam em `closed_weekdays` (0 = domingo).

@@ -140,3 +140,36 @@ input:focus{outline:3px solid var(--hi);outline-offset:1px}
 .morph .dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)}
 .morph .dots span.on{background:#fff}
 @media (prefers-reduced-motion: reduce){.morph img{transition:opacity .3s}.morph .flash{display:none}}
+
+/* painel: Meu site */
+select{width:100%;font:inherit;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.edit{border-top:1px solid var(--line);padding:14px 0}
+.edit:first-of-type{border-top:0;padding-top:0}
+.midias{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.midias>span{display:flex;flex-wrap:wrap;gap:6px 0;align-items:center}
+.midias form,.acoes form,.galedit form{display:inline}
+.thumb.vazio{display:grid;place-items:center;font-size:11px;color:var(--muted);border:1.5px dashed var(--line);background:transparent}
+.g2,.g3{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:520px){.g2,.g3{grid-template-columns:1fr 1fr}}
+.chk{display:flex;align-items:center;gap:8px;font-weight:500;margin:4px 0 12px;cursor:pointer}
+.chk input{width:20px;height:20px;padding:0;flex:none}
+.dias{display:flex;flex-wrap:wrap;gap:0 14px;margin-bottom:6px}
+.acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.apagar{margin-top:10px}
+.perigo{color:#C0392B}
+.novo summary{cursor:pointer;font-weight:700;color:var(--accent);padding:6px 0}
+.novo form{margin-top:12px}
+.up{display:inline-flex;align-items:center;gap:6px}
+.up small{font-size:12px;color:var(--muted);margin-right:10px}
+video.prev{width:100%;max-width:280px;border-radius:12px;background:#000;display:block;margin-bottom:10px}
+.galedit{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:10px}
+.galedit img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;display:block;background:var(--line)}
+.serv summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none}
+.serv summary::-webkit-details-marker{display:none}
+.serv summary .grow{flex:1;min-width:0}
+.serv summary b{display:block;font-weight:600}
+.serv summary small{color:var(--muted);font-size:13px}
+.serv[open] summary{margin-bottom:12px}
+.serv[open] summary .mini{visibility:hidden}

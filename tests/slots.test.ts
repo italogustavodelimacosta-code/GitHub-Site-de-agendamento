@@ -79,3 +79,30 @@ test("regras da senha nova", () => {
   assert.equal(passwordProblem("aaaaaaaaaa"), "fraca");
   assert.equal(passwordProblem("Navalha#2026"), null);
 });
+
+import { sqlNovoCliente, sqlApagarCliente } from "../lib/novoCliente.ts";
+const ficha = {
+  link: "Barbearia do Zé", tipo: "barbearia" as const, nome: "Barbearia do Zé's", abre: "9:00", fecha: "20:00", fechado: ["Domingo", "segunda-feira"],
+  whatsapp: "(19) 99999-0000", email: "ze@exemplo.com", senha: "cabelo-bom-2026",
+  profissionais: [{ nome: "Zé" }], servicos: [{ nome: "Corte", preco: 40, minutos: 30 }], extras: [{ nome: "Barba", preco: 25, minutos: 20 }],
+};
+test("cliente novo: gera SQL com link limpo, senha que funciona e marca de cliente", () => {
+  const r = sqlNovoCliente(ficha);
+  assert.equal(r.link, "barbeariadoze");
+  assert.match(r.sql, /'barbeariadoze', 'barbearia', 'Barbearia do Zé''s'/);
+  assert.match(r.sql, /540, 1200, 30, 1, '\{0,1\}', '5519999990000'/);
+  assert.match(r.sql, /"cliente":true,"aviso_email":"ze@exemplo.com"/);
+  const hash = /'(scrypt:[^']+)'/.exec(r.sql)![1];
+  assert.ok(verifyPassword("cabelo-bom-2026", hash));
+  assert.ok(!r.sql.includes("cabelo-bom-2026"));
+  assert.match(r.sql, /\('extra','Barba','',25,0,20,null,null,null,2\)/);
+  assert.equal(sqlNovoCliente({ ...ficha, senha: undefined }).senha.length, 10);
+});
+test("cliente novo: recusa ficha com erro", () => {
+  assert.throws(() => sqlNovoCliente({ ...ficha, link: "api" }), /já é usado/);
+  assert.throws(() => sqlNovoCliente({ ...ficha, fecha: "08:00" }), /depois de abre/);
+  assert.throws(() => sqlNovoCliente({ ...ficha, whatsapp: "123" }), /whatsapp/);
+  assert.throws(() => sqlNovoCliente({ ...ficha, senha: "12345678" }), /senha/);
+  assert.throws(() => sqlNovoCliente({ ...ficha, fechado: ["feriado"] }), /feriado/);
+  assert.match(sqlApagarCliente("barbeariadoze"), /config->>'cliente' = 'true'/);
+});
