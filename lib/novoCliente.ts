@@ -33,7 +33,7 @@ const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLo
 const q = (v: string | null | undefined) => (v == null || v === "" ? "null" : `'${String(v).replace(/'/g, "''")}'`);
 const txt = (v: string | null | undefined) => `'${String(v ?? "").replace(/'/g, "''")}'`;
 const num = (v: unknown, nome: string) => { const n = Number(v); if (!Number.isFinite(n) || n < 0) throw new Error(`${nome}: número inválido`); return n; };
-function minutos(h: string, nome: string) {
+export function minutos(h: string, nome: string) {
   const m = /^(\d{1,2})(?::(\d{2}))?$/.exec(String(h).trim().replace(/h$/i, ""));
   if (!m) throw new Error(`${nome}: use o formato 09:00`);
   const t = Number(m[1]) * 60 + Number(m[2] || 0);

@@ -93,6 +93,9 @@ Aviso por e-mail ao cliente: o e-mail fica na ficha (`email`). Enquanto o Resend
 Para tirar um cliente do ar: `delete from businesses where slug = '<link>' and config->>'cliente' = 'true';` (apaga os agendamentos dele também).
 
 ## Ajustes do dia a dia
+O próprio dono faz quase tudo pelo painel, em **/<link>/painel > Meu site**: nome, endereço, horário, dias fechados, cores, cortes e lavagens (preço, custo, tempo, descrição, selo, foto e vídeo), adicionais, barbeiros, vídeo de abertura e fotos da galeria. As fotos e vídeos vão para o Supabase Storage (pasta pública `midia`, criada sozinha no primeiro envio; plano grátis: 1 GB). O navegador envia o arquivo direto para o Storage, então vídeos de até 50 MB funcionam.
+
+Pelo Supabase, se precisar:
 - **Preços, custos, serviços, fotos e vídeos:** Supabase > Table Editor > `services`. A coluna `active` liga e desliga um serviço.
 - **Barbeiros:** tabela `professionals`.
 - **Horário de funcionamento:** tabela `businesses`, nas colunas `open_min` e `close_min`, em minutos desde a meia-noite (9h = 540, 20h = 1200, meia-noite = 1440). Os dias fechados ficam em `closed_weekdays` (0 = domingo).

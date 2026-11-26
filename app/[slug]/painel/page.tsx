@@ -49,6 +49,7 @@ export default async function Painel(props: { params: Promise<{ slug: string }>;
           <div><span className="tag">Área do dono</span><h1>{biz.name}</h1></div>
           <form method="post" action={`/api/${biz.slug}/logout`} style={{ marginLeft: "auto" }}><button className="btn ghost" type="submit">Sair</button></form>
         </header>
+        <nav className="tabs" aria-label="Painel"><a href={`/${biz.slug}/painel`} aria-current="page">Agenda e faturamento</a><a href={`/${biz.slug}/painel/site`}>Meu site: preços, serviços e fotos</a></nav>
         {searchParams.msg && msgs[searchParams.msg] && <div className="notice">{msgs[searchParams.msg]}</div>}
         {!biz.owner_whatsapp && <div className="notice"><b>Cadastre seu WhatsApp</b> lá embaixo para receber cada agendamento na hora.</div>}
 
