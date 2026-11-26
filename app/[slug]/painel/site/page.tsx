@@ -119,6 +119,11 @@ export default async function MeuSite(props: { params: Promise<{ slug: string }>
             <div className="field"><label>Cores do site</label>
               <select name="estilo" defaultValue={biz.config.style || "claro"}>
                 <option value="noturno">Escuro com dourado</option><option value="agua">Azul</option><option value="claro">Claro com vinho</option>
+                <option value="grafite">Papel com preto e laranja</option><option value="turbo">Azul-noite com verde-limão</option>
+              </select></div>
+            <div className="field"><label>Modelo da página</label>
+              <select name="modelo" defaultValue={biz.config.layout || "classico"}>
+                <option value="classico">Clássico (aplicativo, uma tela por vez)</option><option value="vitrine">Vitrine (página completa, estilo site)</option>
               </select></div>
             <button className="btn" type="submit">Salvar</button>
           </form>
